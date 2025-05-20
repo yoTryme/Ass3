@@ -1,57 +1,96 @@
 [
-    {
-        "name": "Green Gem",
-        "sprite": 0,
-        "trigger": {
-            "description": "Whenever you take damage",
-            "type": "take-damage"
-        },
-        "effect": {
-            "description": "you gain 5 mana",
-            "type": "gain-mana",
-            "amount": "5"
-        }
+  {
+    "name": "Green Gem",
+    "sprite": 0,
+    "trigger": {
+      "description": "Whenever you take damage",
+      "type": "take-damage"
     },
-    {
-        "name": "Jade Elephant",
-        "sprite": 1,
-        "trigger": {
-            "description": "When you don't move for 3 seconds",
-            "type": "stand-still",
-            "amount": "3"
-        },
-        "effect": {
-            "description": "you gain 10 spellpower (+5/wave)",
-            "type": "gain-spellpower",
-            "amount": "10 wave 5 * +",
-            "until": "move"
-        }
-    },
-    {
-        "name": "Golden Mask",
-        "sprite": 2,
-        "trigger": {
-            "description": "When you take damage",
-            "type": "take-damage"
-        },
-        "effect": {
-            "description": "your next spell gains 100 additional spellpower.",
-            "type": "gain-spellpower",
-            "amount": "100",
-            "until": "cast-spell"
-        }
-    },
-    {
-        "name": "Cursed Scroll",
-        "sprite": 3,
-        "trigger": {
-            "description": "When you kill an enemy",
-            "type": "on-kill"
-        },
-        "effect": {
-            "description": "you gain 25 mana.",
-            "type": "gain-mana",
-            "amount": "25"
-        }
+    "effect": {
+      "description": "you gain 5 mana",
+      "type": "gain-mana",
+      "amount": "5"
     }
+  },
+  {
+    "name": "Jade Elephant",
+    "sprite": 1,
+    "trigger": {
+      "description": "When you don't move for 3 seconds",
+      "type": "stand-still",
+      "amount": "3"
+    },
+    "effect": {
+      "description": "you gain 10 spellpower (+5/wave)",
+      "type": "gain-spellpower",
+      "amount": "10 wave 5 * +",
+      "until": "move"
+    }
+  },
+  {
+    "name": "Golden Mask",
+    "sprite": 2,
+    "trigger": {
+      "description": "When you take damage",
+      "type": "take-damage"
+    },
+    "effect": {
+      "description": "your next spell gains 100 additional spellpower.",
+      "type": "gain-spellpower",
+      "amount": "100",
+      "until": "cast-spell"
+    }
+  },
+  {
+    "name": "Cursed Scroll",
+    "sprite": 3,
+    "trigger": {
+      "description": "When you kill an enemy",
+      "type": "on-kill"
+    },
+    "effect": {
+      "description": "you gain 25 mana.",
+      "type": "gain-mana",
+      "amount": "25"
+    }
+  },
+  {
+    "name": "Blood Pact",
+    "sprite": 4,
+    "trigger": {
+      "description": "Whenever you deal damage",
+      "type": "deal-damage"
+    },
+    "effect": {
+      "description": "you gain 2 mana",
+      "type": "gain-mana",
+      "amount": "2"
+    }
+  },
+  {
+    "name": "Vitality Ring",
+    "sprite": 5,
+    "trigger": {
+      "description": "Whenever you cast a spell",
+      "type": "cast-spell"
+    },
+    "effect": {
+      "description": "you heal 5 health",
+      "type": "gain-health",
+      "amount": "5"
+    }
+  },
+  {
+    "name": "Blood Chalice",
+    "sprite": 8,
+    "trigger": {
+      "description": "When you kill an enemy",
+      "type": "on-kill"
+    },
+    "effect": {
+      "description": "you gain 5 mana",
+      "type": "gain-mana",
+      "amount": "5"
+    }
+  }
 ]

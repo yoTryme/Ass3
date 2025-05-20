@@ -29,7 +29,7 @@
 //     {
 //         spellcaster = new SpellCaster(125, 8, Hittable.Team.PLAYER);
 //         StartCoroutine(spellcaster.ManaRegeneration());
-        
+
 //         hp = new Hittable(100, Hittable.Team.PLAYER, gameObject);
 //         hp.OnDeath += Die;
 //         hp.team = Hittable.Team.PLAYER;
@@ -45,7 +45,7 @@
 //     // Update is called once per frame
 //     void Update()
 //     {
-        
+
 //     }
 
 //     void OnAttack(InputValue value)
@@ -74,57 +74,96 @@
 // PlayerController.cs
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System.IO;
-using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
     public Hittable hp;
     public HealthBar healthui;
     public ManaBar manaui;
-    // public SpellCaster spellcaster;
     public SpellUI spellui;
     public int speed;
     public Unit unit;
 
-    
     private PlayerSpellController spellController;
+    private RelicManager relicManager;
+
+    // 用于检测玩家是否移动或静止
+    private Vector3 lastPosition;
+    private bool wasMovingLastFrame;
+    private float standStillStartTime;
+
     void Start()
     {
         unit = GetComponent<Unit>();
         spellController = GetComponent<PlayerSpellController>();
         GameManager.Instance.player = gameObject;
+
+        // 拿到场景中的 RelicManager 实例
+        relicManager = FindFirstObjectByType<RelicManager>();
+
+        // 初始化移动检测状态
+        lastPosition = transform.position;
+        wasMovingLastFrame = true;         // 假设玩家一开始是“移动”状态
+        standStillStartTime = Time.time;
+
+        // 订阅事件
+        EventBus.Instance.OnMove += relicManager.HandleMove;
+        EventBus.Instance.OnStandStill += relicManager.HandleStandStill;
     }
 
+    void Update()
+    {
+        // 只在“波次中”检测移动/静止
+        if (GameManager.Instance.state != GameManager.GameState.INWAVE)
+        {
+            lastPosition = transform.position;
+            wasMovingLastFrame = true;  // 重置状态，避免切换回波次时误触
+            return;
+        }
+
+        Vector3 currentPos = transform.position;
+        bool isMoving = Vector3.Distance(currentPos, lastPosition) > 0.01f;
+
+        // 刚开始移动 => 触发 Move
+        if (isMoving && !wasMovingLastFrame)
+        {
+            EventBus.Instance.TriggerMove();
+        }
+        // 刚开始静止 => 记录静止开始时间
+        if (!isMoving && wasMovingLastFrame)
+        {
+            standStillStartTime = Time.time;
+        }
+        // 持续静止超过 3 秒 => 触发 StandStill
+        if (!isMoving && !wasMovingLastFrame && Time.time - standStillStartTime > 3f)
+        {
+            EventBus.Instance.TriggerStandStill();
+        }
+
+        wasMovingLastFrame = isMoving;
+        lastPosition = currentPos;
+    }
 
     public void NextLevel()
     {
-        
         hp.SetMaxHP((int)spellController.health);
     }
-    
 
     public void StartLevel()
     {
-        // spellcaster = new SpellCaster(125, 8, Hittable.Team.PLAYER);
-        // StartCoroutine(spellcaster.ManaRegeneration());
-
         speed = (int)spellController.speed;
-        // ← your one-and-only HP instance
+
+        // 初始化玩家血量
         hp = new Hittable((int)spellController.health, Hittable.Team.PLAYER, gameObject);
         hp.OnDeath += Die;
         hp.team = Hittable.Team.PLAYER;
-
         healthui.SetHealth(hp);
-        
+
+        // 开始法力恢复协程
         StartCoroutine(spellController.ManaRegeneration());
-        
-        // manaui.SetSpellCaster(spellcaster);
-        // spellui.SetSpell(spellcaster.spell);
         manaui.SetManaBar(spellController);
-        // ← hook death handler into _this_ Hittable
+
+        // Hook 死亡处理
         GetComponent<PlayerDeathHandler>().InitHP(hp);
     }
 
@@ -134,13 +173,8 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.state == GameManager.GameState.GAMEOVER)
             return;
 
-        Vector2 mouseScreen = Mouse.current.position.value;
-        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(mouseScreen);
-        mouseWorld.z = 0;
-        
-        
-  
-        // StartCoroutine(spellcaster.Cast(transform.position, mouseWorld));
+        // 如果你在这里要调用施法：
+        // spellController.TryCastSpell(GameManager.Instance.currentSpellKey);
     }
 
     void OnMove(InputValue value)
@@ -155,9 +189,17 @@ public class PlayerController : MonoBehaviour
     void Die()
     {
         Debug.Log("You Lost");
-        // ← stop any lingering velocity
         unit.movement = Vector2.zero;
-        // ← disable controller so even if state logic missed, no input!
         enabled = false;
+    }
+
+    void OnDestroy()
+    {
+        // 记得退订，防止场景切换后仍然调用
+        if (EventBus.Instance != null && relicManager != null)
+        {
+            EventBus.Instance.OnMove -= relicManager.HandleMove;
+            EventBus.Instance.OnStandStill -= relicManager.HandleStandStill;
+        }
     }
 }

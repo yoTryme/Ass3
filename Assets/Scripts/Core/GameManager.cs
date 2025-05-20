@@ -127,6 +127,8 @@ public class GameManager
     public  int countdown;
 
     public string currentSpellKey = "arcane_blast";
+    public int currentWave = 1;
+
 
     /*──────── NEW ────────*/
     public static string SelectedLevelName = "Easy";   // set by menu / spawner

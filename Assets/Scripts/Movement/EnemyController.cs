@@ -61,7 +61,7 @@ public class EnemyController : MonoBehaviour
         var col = GetComponent<Collider2D>();  if (col) col.enabled = false;
         var rb  = GetComponent<Rigidbody2D>(); if (rb)  rb.simulated = false;
         GetComponent<Unit>().movement = Vector2.zero;
-
+        EventBus.Instance.TriggerOnKill();
         GameManager.Instance.RemoveEnemy(gameObject);
         Destroy(gameObject);
     }

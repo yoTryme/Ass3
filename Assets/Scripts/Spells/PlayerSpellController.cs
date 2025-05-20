@@ -17,10 +17,34 @@ public class PlayerSpellController : MonoBehaviour
     private PlayerModifierController modifierController;
 
     private float currentCooldown;
+
     private SpellData currentSpell;
     // 新增字段：标识是否为自动施法
     private bool isAutoCast = false;
+    // —— 新增：Golden Mask 下次施法加成缓存
+    public int nextSpellBonus = 0;
 
+    // —— 新增：Jade Elephant 临时法术强度增益
+    private int tempSpellBonus = 0;
+
+    // —— 新增：被 Cursed Scroll、其他系统调用，直接补充法力
+    public void AddMana(int amount)
+    {
+        mana += amount;
+        if (mana > max_mana) mana = max_mana;
+    }
+
+    // —— 新增：Jade Elephant 增益调用
+    public void AddTempSpell(int amount)
+    {
+        tempSpellBonus += amount;
+    }
+
+    // —— 新增：在移动时或其他时机清除静止增益
+    public void ClearTempSpell()
+    {
+        tempSpellBonus = 0;
+    }
     void Start()
     {
         modifierController = GetComponent<PlayerModifierController>();
@@ -105,6 +129,14 @@ public class PlayerSpellController : MonoBehaviour
     
     public bool TryCastSpell(string spellId)
     {
+        power += nextSpellBonus;
+        if (nextSpellBonus != 0)
+        {
+            Debug.Log($"[PlayerSpellController] Applied Golden Mask bonus, power={power}");
+            nextSpellBonus = 0;
+        }
+        power += tempSpellBonus;
+
         SpellData modifiedSpell = modifierController.GetModifiedSpell(spellId, power);
         currentSpell = modifiedSpell;
         
