@@ -21,9 +21,15 @@ public class EnemyController : MonoBehaviour
     {
         target  = GameManager.Instance.player.transform;
 
-        // initialise Hittable with currentHP if not supplied
+        // 如果 Inspector 里没挂，就从 GameObject 上获取或添加 Hittable 组件
         if (hp == null)
-            hp = new Hittable(currentHP, Hittable.Team.MONSTERS, gameObject);
+            hp = GetComponent<Hittable>() ?? gameObject.AddComponent<Hittable>();
+        
+        // 手动根据 spawner 传入的 currentHP 初始化
+        hp.max_hp = currentHP;
+        hp.hp = currentHP;
+        hp.team = Hittable.Team.MONSTERS;
+        hp.owner = gameObject;
 
         hp.OnDeath += Die;
         healthui.SetHealth(hp);

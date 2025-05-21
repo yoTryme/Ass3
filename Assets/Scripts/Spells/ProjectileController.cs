@@ -303,6 +303,11 @@ public class ProjectileController : MonoBehaviour
               
                 
                 ec.hp.Damage(new Damage( damage,Damage.Type.ARCANE));
+                EventBus.Instance.TriggerDealDamage(
+                    transform.position,
+                    new Damage(damage, Damage.Type.ARCANE),
+                    ec.hp
+                );
             }
             
             Destroy(gameObject);

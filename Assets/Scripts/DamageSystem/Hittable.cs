@@ -1,9 +1,8 @@
 using UnityEngine;
 using System;
 
-public class Hittable
+public class Hittable : MonoBehaviour
 {
-
     public enum Team { PLAYER, MONSTERS }
     public Team team;
 
@@ -12,37 +11,33 @@ public class Hittable
 
     public GameObject owner;
 
-    private bool isDead = false;
+    private bool isDead;
+
+    void Awake()
+    {
+        owner = this.gameObject;
+        hp = max_hp;
+        isDead = false;
+    }
+
     public void Damage(Damage damage)
     {
         EventBus.Instance.DoDamage(owner.transform.position, damage, this);
         hp -= damage.amount;
-        if (hp <= 0)
+        if (hp <= 0 && !isDead)
         {
-            if (!isDead)
-            {
-                hp = 0;
-                OnDeath();
-                isDead = true;
-            }
-           
+            hp = 0;
+            OnDeath?.Invoke();
+            isDead = true;
         }
     }
 
     public event Action OnDeath;
 
-    public Hittable(int hp, Team team, GameObject owner)
+    public void SetMaxHP(int newMaxHp)
     {
-        this.hp = hp;
-        this.max_hp = hp;
-        this.team = team;
-        this.owner = owner;
-    }
-
-    public void SetMaxHP(int max_hp)
-    {
-        float perc = this.hp * 1.0f / this.max_hp;
-        this.max_hp = max_hp;
-        this.hp = Mathf.RoundToInt(perc * max_hp);
+        float perc = (float)hp / max_hp;
+        max_hp = newMaxHp;
+        hp = Mathf.RoundToInt(perc * max_hp);
     }
 }

@@ -25,4 +25,14 @@ public class EventBus
     public event Action OnStandStill;
     public void TriggerStandStill()
         => OnStandStill?.Invoke();
+
+    // —— 新增：当玩家对敌人造成伤害时触发 —— 
+    public event Action<Vector3, Damage, Hittable> OnDealDamage;
+    public void TriggerDealDamage(Vector3 where, Damage dmg, Hittable target)
+        => OnDealDamage?.Invoke(where, dmg, target);
+
+    // —— 新增：当玩家成功施法时触发 —— 
+    public event Action OnCastSpell;
+    public void TriggerOnCastSpell()
+        => OnCastSpell?.Invoke();
 }

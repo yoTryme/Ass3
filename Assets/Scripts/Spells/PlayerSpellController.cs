@@ -45,6 +45,30 @@ public class PlayerSpellController : MonoBehaviour
     {
         tempSpellBonus = 0;
     }
+    // HealEffect 调用
+    public void Heal(int amount)
+    {
+        health += amount;
+        // 如果你有最大生命上限，可以在这里 clamp：
+        // health = Mathf.Min(health, maxHealth);
+    }
+
+    // Swift Stone 调用，立即减少当前冷却
+    public void ReduceCooldown(float seconds)
+    {
+        currentCooldown = Mathf.Max(0, currentCooldown - seconds);
+    }
+
+    // Rage Emblem 调用，为下次施法增强伤害
+    public void BoostNextSpellDamage(float percent)
+    {
+        // percent 比如 0.2f 表示 +20%
+        // 假设你的 power 是法术基础强度：
+        int bonus = Mathf.RoundToInt(power * percent);
+        nextSpellBonus += bonus;
+        Debug.Log($"[PlayerSpellController] BoostNextSpellDamage applied, bonus={bonus}");
+    }
+
     void Start()
     {
         modifierController = GetComponent<PlayerModifierController>();
@@ -126,99 +150,71 @@ public class PlayerSpellController : MonoBehaviour
             yield return new WaitForSeconds(1);
         }
     }
-    
+
     public bool TryCastSpell(string spellId)
     {
-        power += nextSpellBonus;
+        // 1) 取到经过 Modifier 修正后的法术数据
+        SpellData modifiedSpell = modifierController.GetModifiedSpell(spellId, power);
+        if (modifiedSpell == null) return false;
+        currentSpell = modifiedSpell;
+
+        // 2) 计算施法方向
+        Vector2 dir = GetMouseDirection();
+
+        // 3) 计算实际威力（基础 + Golden Mask 加成 + Jade Elephant 加成）
+        int basePower = power;
+        int actualPower = basePower;
         if (nextSpellBonus != 0)
         {
-            Debug.Log($"[PlayerSpellController] Applied Golden Mask bonus, power={power}");
+            actualPower += nextSpellBonus;
+            Debug.Log($"[PlayerSpellController] Applied Golden Mask bonus, power={actualPower}");
             nextSpellBonus = 0;
         }
-        power += tempSpellBonus;
+        actualPower += tempSpellBonus;
 
-        SpellData modifiedSpell = modifierController.GetModifiedSpell(spellId, power);
-        currentSpell = modifiedSpell;
-        
-        // 生成锥形弹幕
+        // 4) 计算消耗和冷却
+        float manaCost = RpnCalculator.Calculate(modifiedSpell.mana_cost, basePower);
+        float cooldown = modifiedSpell.cooldown;
+        if (currentCooldown > 0 || mana < manaCost)
+            return false;
+        mana -= manaCost;
+        currentCooldown = cooldown;
+
+        // 5) 处理各种分支
         if (spellId == "arcane_spray")
         {
-            
-            float finalManaCost = RpnCalculator.Calculate(modifiedSpell.mana_cost, power);
-            float finalCooldown = modifiedSpell.cooldown;
-
-            if (currentCooldown > 0 || mana < finalManaCost)
-                return false;
-
-            mana -= finalManaCost;
-            
-            currentCooldown = finalCooldown;
-            int projectileCount = Mathf.RoundToInt(RpnCalculator.Calculate(modifiedSpell.N, power));
-            float baseAngle = -45f; // 起始角度-45度
-
-            for (int i = 0; i < projectileCount; i++)
+            // 锥形弹幕
+            int count = Mathf.RoundToInt(RpnCalculator.Calculate(modifiedSpell.N, basePower));
+            float startAngle = -45f;
+            for (int i = 0; i < count; i++)
             {
-                float angle = baseAngle + (90f / (projectileCount - 1)) * i;
-                Vector2 dir = Quaternion.Euler(0, 0, angle) * GetMouseDirection();
-                CreateProjectile(modifiedSpell.projectile, dir, modifiedSpell);
+                float angle = startAngle + (90f / (count - 1)) * i;
+                Vector2 sprayDir = Quaternion.Euler(0, 0, angle) * dir;
+                CreateProjectile(modifiedSpell.projectile, sprayDir, modifiedSpell);
             }
         }
         else
         {
-            // 如果是自动施法，跳过修正器和消耗检查
-            if (!isAutoCast)
+            // splitter 修饰符
+            if (modifierController.HasModifier(spellId, "split"))
             {
-          
-                float finalManaCost = RpnCalculator.Calculate(modifiedSpell.mana_cost, power);
-                float finalCooldown = modifiedSpell.cooldown;
-
-                Debug.Log("finalManaCost    "  +finalManaCost);
-                
-                
-                if (currentCooldown > 0 || mana < finalManaCost)
-                    return false;
-
-                mana -= finalManaCost;
-                currentCooldown = finalCooldown;
-
-                // 检查是否存在 doubler 修正
-                if (modifierController.HasModifier(spellId, "doubled"))
-                {
-                    float delay = modifierController.GetModifierValue<float>(
-                        spellId, "doubled", "delay", 0.5f);
-                    StartCoroutine(DelayedCast(spellId, delay));
-                }
-            
-                // 检查 splitter 修正
-                if (modifierController.HasModifier(spellId, "split"))
-                {
-                    float splitAngle = modifierController.GetModifierValue<float>(
-                        spellId, "split", "angle", 10f);
-
-                    // 生成左侧分裂投射物
-                    Vector2 leftDir = Quaternion.Euler(0, 0, splitAngle) * GetMouseDirection();
-                    CreateProjectile(modifiedSpell.projectile, leftDir, modifiedSpell);
-
-                    // // 生成右侧分裂投射物
-                    Vector2 rightDir = Quaternion.Euler(0, 0, -splitAngle) * GetMouseDirection();
-                    CreateProjectile(modifiedSpell.projectile, rightDir, modifiedSpell);
-                }
-            
-            
+                float splitAngle = modifierController
+                    .GetModifierValue<float>(spellId, "split", "angle", 10f);
+                Vector2 leftDir = Quaternion.Euler(0, 0, splitAngle) * dir;
+                Vector2 rightDir = Quaternion.Euler(0, 0, -splitAngle) * dir;
+                CreateProjectile(modifiedSpell.projectile, leftDir, modifiedSpell);
+                CreateProjectile(modifiedSpell.projectile, rightDir, modifiedSpell);
             }
+            // 不走 splitter，就走普通或 doubler
             else
             {
-                // 自动施法使用基础法术数据
-                SpellData baseSpell = SpellManager.Instance.GetSpell(spellId);
-                CreateProjectile(baseSpell.projectile, GetMouseDirection(), baseSpell);
+                CreateProjectile(modifiedSpell.projectile, dir, modifiedSpell);
             }
-
-            CreateProjectile(modifiedSpell.projectile, GetMouseDirection(), modifiedSpell);
         }
-        
+
         return true;
     }
-    
+
 
     // public bool TryCastSpell(string spellId)
     // {
@@ -243,7 +239,7 @@ public class PlayerSpellController : MonoBehaviour
     //     
     //     return true;
     // }
-    
+
     // 新增协程：延迟施法
     private IEnumerator DelayedCast(string spellId, float delay)
     {
@@ -264,8 +260,10 @@ public class PlayerSpellController : MonoBehaviour
             CalculateRotation(dir)
             // Quaternion.AngleAxis(angle, Vector3.forward)
         );
+        // —— 新增：通知“cast-spell” —— 
+        EventBus.Instance.TriggerOnCastSpell();
 
-     
+
 
         Debug.Log("config.trajectory" + config.trajectory);
         if (spell.name == "Arcane Blast")

@@ -372,10 +372,19 @@ public class EnemySpawner : MonoBehaviour
             GameManager.Instance.enemySpriteManager.Get(info.sprite);
 
         var ec = e.GetComponent<EnemyController>();
-        ec.hp = new Hittable(hp, Hittable.Team.MONSTERS, e);
-        ec.maxHP = ec.currentHP = hp;
+
+        // 用组件而不是 new 构造
+        var hittable = e.GetComponent<Hittable>();
+        if (hittable == null) hittable = e.AddComponent<Hittable>();
+        // 初始化属性
+        hittable.max_hp = hp;
+        hittable.hp = hp;
+        hittable.team = Hittable.Team.MONSTERS;
+        hittable.owner = e;
+        ec.hp = hittable;
         ec.speed = speed;
         ec.damage = damage;
+        ec.maxHP = ec.currentHP = hp;
 
         ec.hp.OnDeath += () => {
             killCount++;

@@ -55,42 +55,42 @@
     }
   },
   {
-    "name": "Blood Pact",
-    "sprite": 4,
+    "name": "Life Link",
+    "sprite": 6,
     "trigger": {
-      "description": "Whenever you deal damage",
-      "type": "deal-damage"
+      "description": "When you deal damage",
+      "type": "on-deal-damage"
     },
     "effect": {
-      "description": "you gain 2 mana",
-      "type": "gain-mana",
-      "amount": "2"
+      "description": "Heal 5 HP",
+      "type": "heal",
+      "amount": "5"
     }
   },
   {
-    "name": "Vitality Ring",
-    "sprite": 5,
+    "name": "Swift Stone",
+    "sprite": 7,
     "trigger": {
-      "description": "Whenever you cast a spell",
+      "description": "When you cast a spell",
       "type": "cast-spell"
     },
     "effect": {
-      "description": "you heal 5 health",
-      "type": "gain-health",
-      "amount": "5"
+      "description": "Reduce next spell cooldown by 1s",
+      "type": "reduce-cooldown",
+      "amount": "1"
     }
   },
   {
-    "name": "Blood Chalice",
+    "name": "Rage Emblem",
     "sprite": 8,
     "trigger": {
-      "description": "When you kill an enemy",
-      "type": "on-kill"
+      "description": "When you take damage",
+      "type": "take-damage"
     },
     "effect": {
-      "description": "you gain 5 mana",
-      "type": "gain-mana",
-      "amount": "5"
+      "description": "Increase damage dealt by 20%",
+      "type": "increase-damage",
+      "amount": "20"
     }
   }
 ]

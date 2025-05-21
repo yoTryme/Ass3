@@ -113,13 +113,8 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // 只在“波次中”检测移动/静止
-        if (GameManager.Instance.state != GameManager.GameState.INWAVE)
-        {
-            lastPosition = transform.position;
-            wasMovingLastFrame = true;  // 重置状态，避免切换回波次时误触
-            return;
-        }
+        if (GameManager.Instance.state != GameManager.GameState.INWAVE) return;
+
 
         Vector3 currentPos = transform.position;
         bool isMoving = Vector3.Distance(currentPos, lastPosition) > 0.01f;
@@ -153,10 +148,15 @@ public class PlayerController : MonoBehaviour
     {
         speed = (int)spellController.speed;
 
-        // 初始化玩家血量
-        hp = new Hittable((int)spellController.health, Hittable.Team.PLAYER, gameObject);
-        hp.OnDeath += Die;
+        // 取到挂在玩家物体上的 Hittable 组件（Inspector 上要挂这个脚本）
+        hp = GetComponent<Hittable>();
+        // 初始化属性
+        hp.max_hp = (int)spellController.health;
+        hp.hp = hp.max_hp;
         hp.team = Hittable.Team.PLAYER;
+        hp.owner = gameObject;
+        hp.OnDeath += Die;
+
         healthui.SetHealth(hp);
 
         // 开始法力恢复协程

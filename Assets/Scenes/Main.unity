@@ -1508,6 +1508,7 @@ MonoBehaviour:
   slider: {fileID: 1884016144}
   health: 0
   health_max: 0
+  hp: {fileID: 0}
 --- !u!212 &765025205
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -4052,6 +4053,7 @@ GameObject:
   - component: {fileID: 1718273957}
   - component: {fileID: 1718273958}
   - component: {fileID: 1718273959}
+  - component: {fileID: 1718273960}
   m_Layer: 6
   m_Name: player
   m_TagString: unit
@@ -4101,6 +4103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4ef5265fce1b544c872205988919fb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hp: {fileID: 0}
   healthui: {fileID: 765025204}
   manaui: {fileID: 71109453}
   spellui: {fileID: 0}
@@ -4256,6 +4259,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f142a05eacedddb4e8b11f73483322f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1718273960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718273950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ba89bf06e2aa8b41b68b5c7c3d864a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team: 0
+  hp: 101
+  max_hp: 0
+  owner: {fileID: 0}
 --- !u!1 &1787348171
 GameObject:
   m_ObjectHideFlags: 0
