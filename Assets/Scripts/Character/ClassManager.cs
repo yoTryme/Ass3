@@ -1,58 +1,81 @@
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 public class ClassManager : MonoBehaviour
 {
+    private Dictionary<string, CharacterStats> classData;
     public static ClassManager Instance;
-    
-    [Header("配置文件")]
-    public TextAsset classesJson;
-
-    private Dictionary<string, CharacterClass> classes = 
-        new Dictionary<string, CharacterClass>();
 
     void Awake()
     {
         Instance = this;
-        LoadClasses();
+        LoadClassData();
     }
 
-    private void LoadClasses()
+    private void LoadClassData()
     {
-        string json = classesJson.text;
-        var data = JsonConvert.DeserializeObject<Dictionary<string, CharacterClass>>(json);
-        
-        foreach (var kvp in data)
+        classData = new Dictionary<string, CharacterStats>();
+
+        TextAsset jsonFile = Resources.Load<TextAsset>("classes");
+        if (jsonFile == null)
         {
-            classes.Add(kvp.Key, kvp.Value);
+            Debug.LogError("Class data file not found!");
+            return;
+        }
+
+        JObject parsed = JObject.Parse(jsonFile.text);
+
+        foreach (var pair in parsed)
+        {
+            string classKey = pair.Key;
+            JObject data = (JObject)pair.Value;
+
+            CharacterStats stats = new CharacterStats
+            {
+                sprite = data["sprite"]?.ToObject<int>() ?? 0,
+                health = Evaluate(data, "health", 0),
+                mana = Evaluate(data, "mana", 0),
+                manaRegeneration = Evaluate(data, "mana_regeneration", 0),
+                spellpower = Evaluate(data, "spellpower", 0),
+                speed = Evaluate(data, "speed", 0)
+            };
+
+            classData[classKey] = stats;
         }
     }
 
-    /// <summary>
-    /// 获取角色属性值
-    /// </summary>
-    /// <param name="className">职业名称（如 "mage"）</param>
-    /// <param name="wave">当前波次</param>
-    public CharacterStats GetClassStats(string className, int wave)
+    public CharacterStats GetClassStats(string classKey, int wave)
     {
-        if (!classes.ContainsKey(className))
+        if (!classData.ContainsKey(classKey))
         {
-            throw new System.ArgumentException($"无效职业名称: {className}");
+            Debug.LogWarning($"Class {classKey} not found.");
+            return new CharacterStats();
         }
 
-        CharacterClass cls = classes[className];
+        CharacterStats baseStats = classData[classKey];
+        JObject data = JObject.Parse(Resources.Load<TextAsset>("classes").text)[classKey] as JObject;
+
         return new CharacterStats
         {
-            sprite = cls.sprite,
-            health = RpnCalculator.Calculate(cls.health, waveValue: wave),
-            mana = RpnCalculator.Calculate(cls.mana, waveValue: wave),
-            manaRegeneration = RpnCalculator.Calculate(cls.mana_regeneration, waveValue: wave),
-            spellpower = RpnCalculator.Calculate(cls.spellpower, waveValue: wave),
-            speed = RpnCalculator.Calculate(cls.speed, waveValue: wave)
+            sprite = baseStats.sprite,
+            health = Evaluate(data, "health", wave),
+            mana = Evaluate(data, "mana", wave),
+            manaRegeneration = Evaluate(data, "mana_regeneration", wave),
+            spellpower = Evaluate(data, "spellpower", wave),
+            speed = Evaluate(data, "speed", wave)
         };
     }
+
+    private float Evaluate(JObject data, string key, int wave)
+    {
+        if (!data.ContainsKey(key)) return 0f;
+        string expr = data[key].ToString();
+        return RpnCalculator.Calculate(expr, 0, wave);
+    }
 }
+
+
 
 /// <summary>
 /// 计算后的角色属性

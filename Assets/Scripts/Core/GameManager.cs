@@ -128,7 +128,8 @@ public class GameManager
 
     public string currentSpellKey = "arcane_blast";
     public int currentWave = 1;
-
+    public int MaxWave = 1;
+    public string characterClassKey = "mage";
 
     /*──────── NEW ────────*/
     public static string SelectedLevelName = "Easy";   // set by menu / spawner
@@ -153,7 +154,7 @@ public class GameManager
     public EnemySpriteManager enemySpriteManager;
     public PlayerSpriteManager playerSpriteManager;
     public RelicIconManager    relicIconManager;
-
+    public ClassManager classManager;
     private List<GameObject> enemies;
     public  int enemy_count { get { return enemies.Count; } }
 
@@ -196,6 +197,7 @@ public class GameManager
     private GameManager()
     {
         enemies = new List<GameObject>();
+        classManager = new ClassManager();
     }
 
     public void ResetGame()

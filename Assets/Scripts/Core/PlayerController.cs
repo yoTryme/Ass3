@@ -83,10 +83,10 @@ public class PlayerController : MonoBehaviour
     public SpellUI spellui;
     public int speed;
     public Unit unit;
-
+    public CharacterStats characterStats;
     private PlayerSpellController spellController;
     private RelicManager relicManager;
-
+    public PlayerTile playerTile;
     // 用于检测玩家是否移动或静止
     private Vector3 lastPosition;
     private bool wasMovingLastFrame;
@@ -97,7 +97,7 @@ public class PlayerController : MonoBehaviour
         unit = GetComponent<Unit>();
         spellController = GetComponent<PlayerSpellController>();
         GameManager.Instance.player = gameObject;
-
+        //playerTile = new PlayerTile();
         // 拿到场景中的 RelicManager 实例
         relicManager = FindFirstObjectByType<RelicManager>();
 
@@ -110,7 +110,19 @@ public class PlayerController : MonoBehaviour
         EventBus.Instance.OnMove += relicManager.HandleMove;
         EventBus.Instance.OnStandStill += relicManager.HandleStandStill;
     }
+    public void ReadDeclareCharacter(string index)
+    {
+        characterStats = ClassManager.Instance.GetClassStats(index, GameManager.Instance.currentWave);
+        spellController.health = characterStats.health;
+        spellController.mana = characterStats.mana;
+        spellController.power = (int)characterStats.spellpower;
+        spellController.manaRegeneration = characterStats.manaRegeneration;
+        speed = (int)characterStats.speed;
+        
+        playerTile.SetClassSprite(characterStats.sprite);
 
+
+    }
     void Update()
     {
         if (GameManager.Instance.state != GameManager.GameState.INWAVE) return;
