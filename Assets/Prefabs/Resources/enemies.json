@@ -19,6 +19,20 @@
        "hp": 30,
        "speed": 7,
        "damage": 10
-   }
+   },
+   {
+    "name": "eyes",
+    "sprite": 5,
+    "hp": 30,
+    "speed": 7,
+    "damage": 10
+    },
+    {
+    "name": "mashroom",
+    "sprite": 13,
+    "hp": 30,
+    "speed": 7,
+    "damage": 10
+}
  
 ]
