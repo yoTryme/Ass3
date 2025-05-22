@@ -14,7 +14,6 @@ public class CharacterSelectorUI : MonoBehaviour
     public TextMeshProUGUI ChImfomation3;
     public PlayerController player;
 
-    private Dictionary<string, CharacterClass> classData;
     public GameObject difficultSelector;
     void Start()
     {
@@ -27,7 +26,7 @@ public class CharacterSelectorUI : MonoBehaviour
         spriteView2.Apply("warlock", GameManager.Instance.playerSpriteManager.Get(1));
         spriteView3.Apply("battlemage", GameManager.Instance.playerSpriteManager.Get(2));
 
-        //DisplayClassInfo();
+        DisplayClassInfo();
     }
 
     void DisplayClassInfo()
@@ -39,17 +38,32 @@ public class CharacterSelectorUI : MonoBehaviour
 
     string FormatClassInfo(string className)
     {
-        if (!classData.ContainsKey(className)) return "No data";
-        CharacterClass c = classData[className];
+        CharacterStats stats = ClassManager.Instance.GetClassStats(className, 0); // wave 0 for preview
 
-        return $"Class: {className}\n" +
-               $"Health: {c.health}\n" +
-               $"Mana: {c.mana}\n" +
-               $"Spell Power: {c.spellpower}\n" +
-               $"Speed: {c.speed}";
+        string description = GetClassDescription(className);
+
+        return $"{description}\n" +
+               $"❤️ Health: {stats.health}\n" +
+               $"🔮 Mana: {stats.mana}\n" +
+               $"💧 Mana Regen: {stats.manaRegeneration}\n" +
+               $"🔥 Spell Power: {stats.spellpower}\n" +
+               $"⚡ Speed: {stats.speed}";
     }
 
-    public void ChooseCharacter(string className)
+    string GetClassDescription(string className)
+    {
+        switch (className)
+        {
+            case "mage":
+                return " *Mage*";
+            case "warlock":
+                return " *Warlock*";
+            case "battlemage":
+                return " *Battlemage*";
+            default:
+                return "Unknown Class";
+        }
+    }    public void ChooseCharacter(string className)
     {
         player.ReadDeclareCharacter(className);
 
