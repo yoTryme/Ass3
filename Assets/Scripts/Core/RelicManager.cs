@@ -15,6 +15,15 @@ public class RelicManager : MonoBehaviour
     private bool playerWasMoving = true;
     private float standStillStartTime;
 
+    /// <summary>
+    /// 判断玩家是否已经拥有指定名字的遗物
+    /// </summary>
+    public bool HasRelic(string relicName)
+    {
+        return activeRelics != null
+            && activeRelics.Any(r => r.name == relicName);
+    }
+
     void Awake()
     {
         Instance = this;
@@ -33,14 +42,6 @@ public class RelicManager : MonoBehaviour
             .FromJson<RelicsContainer>("{\"relics\":" + txt.text + "}")
             .relics.ToList();
 
-        // 激活四条必做 relic + 你新加的三条
-        ActivateRelic("Golden Mask");
-        ActivateRelic("Green Gem");
-        ActivateRelic("Cursed Scroll");
-        ActivateRelic("Jade Elephant");
-        ActivateRelic("Life Link");
-        ActivateRelic("Swift Stone");
-        ActivateRelic("Rage Emblem");
 
         // —— 订阅所有必要事件 —— 
         EventBus.Instance.OnDamage += HandleTakeDamage;    // “take-damage”
