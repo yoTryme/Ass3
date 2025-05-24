@@ -43,11 +43,11 @@ public class SpellPart : MonoBehaviour
             
                 spellBuilder.AddNewSpellBySpell(spellData,spellKey);
                 isAccepted = true;
-                tipObj.SetActive(false);
+                //tipObj.SetActive(false);
             }
             else
             {
-                tipObj.SetActive(true);
+                //tipObj.SetActive(true);
                 Debug.Log("Can't add new spell");
             }
            
@@ -59,11 +59,13 @@ public class SpellPart : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
+        
     }
 
     void ShowSpellPart()
     {
+        
         tipObj.SetActive(false);
         gameObject.SetActive(true);
         isAccepted = false;
@@ -88,7 +90,7 @@ public class SpellPart : MonoBehaviour
 
     private void OnDestroy()
     {
-        EventCenter.RemoveListener(EventDefine.ShowSpellPart,ShowSpellPart);
+        //EventCenter.RemoveListener(EventDefine.ShowSpellPart,ShowSpellPart);
         EventCenter.RemoveListener(EventDefine.CloseSpellPart,CloseSpellPart);
 
     }

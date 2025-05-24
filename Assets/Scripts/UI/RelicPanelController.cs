@@ -7,86 +7,72 @@ using TMPro;
 
 public class RelicPanelController : MonoBehaviour
 {
-    [Header("Prefab & ¸¸ÈİÆ÷")]
-    [SerializeField] GameObject relicViewPrefab;  // ÍÏÈë Prefab Assets/Prefabs/UI/RelicView.prefab
-    [SerializeField] Transform container;        // ÍÏÈë RelicPanel ÏÂµÄ¿Õ GameObject (Èç½Ğ RelicContainer)
+    [Header("Prefab & Container")]
+    [SerializeField] GameObject relicViewPrefab; // Prefab for relic display
+    [SerializeField] Transform container;        // Parent for relic entries
 
-    [Header("Í¼±ê¼¯ & Ñ¡¼¸Ìõ")]
-    [SerializeField] Sprite[] sprites;          // Êı×é³¤¶È ¡İ JSON ×î´ó sprite Ë÷Òı+1
-    [SerializeField] int choiceCount = 3;  // Ëæ»úÈıÑ¡Ò»¾ÍÁô 3
+    [Header("Sprites & Choices")]
+    [SerializeField] Sprite[] sprites;           // Relic icon sprites
+    [SerializeField] int choiceCount = 3;        // Number of relics to choose from
 
     List<RelicInfo> allRelics;
     List<RelicInfo> pick3;
 
     void Awake()
     {
-        Debug.Log("RelicPanelController Awake");
+        Debug.Log("âœ… RelicPanelController Awake");
 
-        // ¼ÓÔØ relics.json£¨·ÅÔÚ Assets/Resources/relics.json£©
+        // Load relics from JSON
         var txt = Resources.Load<TextAsset>("relics");
-        var wrapper = JsonUtility.FromJson<RelicInfoContainer>(
-            "{\"relics\":" + txt.text + "}"
-        );
+        var wrapper = JsonUtility.FromJson<RelicInfoContainer>("{\"relics\":" + txt.text + "}");
         allRelics = wrapper.relics;
 
-        // Ä¬ÈÏÒş²ØÃæ°å
         gameObject.SetActive(false);
 
-        // ¼àÌı·¨ÊõÃæ°å´ò¿ª/¹Ø±Õ
-        EventCenter.AddListener(EventDefine.ShowSpellPart, ShowChoices);
-        EventCenter.AddListener(EventDefine.CloseSpellPart, HidePanel);
+        // Listen for new, dedicated events
+        EventCenter.AddListener(EventDefine.ShowRelicPanel, ShowChoices);
+        EventCenter.AddListener(EventDefine.CloseRelicPanel, HidePanel);
     }
 
     void OnDestroy()
     {
-        EventCenter.RemoveListener(EventDefine.ShowSpellPart, ShowChoices);
-        EventCenter.RemoveListener(EventDefine.CloseSpellPart, HidePanel);
+        EventCenter.RemoveListener(EventDefine.ShowRelicPanel, ShowChoices);
+        EventCenter.RemoveListener(EventDefine.CloseRelicPanel, HidePanel);
     }
 
     void ShowChoices()
     {
-        Debug.Log("RelicPanelController ShowChoices");
+        Debug.Log("âœ… ShowChoices called");
 
-        // 1) Ëæ»úÈ¡Î´ÓµÓĞµÄÈıÌõ
+        // Get 3 random relics that the player doesnâ€™t already have
         pick3 = allRelics
             .Where(r => !RelicManager.Instance.HasRelic(r.name))
             .OrderBy(_ => UnityEngine.Random.value)
             .Take(choiceCount)
             .ToList();
 
-        // 2) Çå¿Õ¾ÉµÄ²Û
-        Debug.Log($"Çå¿ÕÇ° container.childCount={container.childCount}");
-
+        // Clear old entries
         foreach (Transform child in container)
             Destroy(child.gameObject);
-        Debug.Log($"Çå¿Õºó container.childCount={container.childCount}");
 
-
-        // 3) ¿ËÂ¡²¢³õÊ¼»¯
+        // Instantiate relic choices
         foreach (var info in pick3)
         {
             var go = Instantiate(relicViewPrefab, container);
-            Debug.Log("¿ËÂ¡ÁËÒ»¸ö RelicView ÊµÀı => " + info.name);
+            Debug.Log("â¡ï¸ Created Relic: " + info.name);
 
-            // ÕÒµ½×Ó×é¼ş
             var icon = go.transform.Find("Icon").GetComponent<Image>();
             var desc = go.transform.Find("DescText").GetComponent<TMP_Text>();
-            var btn = go.GetComponent<Button>()
-                       ?? go.transform.Find("Button").GetComponent<Button>();
+            var btn = go.GetComponent<Button>() ?? go.transform.Find("Button").GetComponent<Button>();
             var name = btn.transform.Find("NameText").GetComponent<TMP_Text>();
 
-            // ÌîÊı¾İ
             icon.sprite = sprites[info.sprite];
             desc.text = info.effect.description;
             name.text = info.name;
 
-            // °´Å¥»Øµ÷
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => OnPick(info));
         }
-
-        // 4) ÏÔÊ¾ & ÔİÍ£
-        Debug.Log($"¿ËÂ¡ºó container.childCount={container.childCount}");
 
         gameObject.SetActive(true);
         Time.timeScale = 0f;
@@ -94,16 +80,15 @@ public class RelicPanelController : MonoBehaviour
 
     void OnPick(RelicInfo chosen)
     {
-        // ¼¤»î
         RelicManager.Instance.ActivateRelic(chosen.name);
 
-        // ¹Ø±Õ×Ô¼º & ¹Ø±Õ·¨ÊõÃæ°å
         HidePanel();
-        EventCenter.Broadcast(EventDefine.CloseSpellPart);
+        EventCenter.Broadcast(EventDefine.CloseRelicPanel);
 
-        // ¼ÌĞøÏÂÒ»²¨
-        var sp = UnityEngine.Object.FindFirstObjectByType<EnemySpawner>();
-        if (sp != null) sp.NextWave();
+        // Continue to next wave
+        var spawner = FindFirstObjectByType<EnemySpawner>();
+        if (spawner != null)
+            spawner.NextWave();
     }
 
     void HidePanel()
@@ -112,9 +97,9 @@ public class RelicPanelController : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    // ¡ª¡ª ÄÚ²¿Êı¾İ½á¹¹ ¡ª¡ª 
     [Serializable]
     class RelicInfoContainer { public List<RelicInfo> relics; }
+
     [Serializable]
     public class RelicInfo
     {
@@ -123,6 +108,7 @@ public class RelicPanelController : MonoBehaviour
         public Trigger trigger;
         public Effect effect;
     }
+
     [Serializable] public class Trigger { public string description, type, amount; }
     [Serializable] public class Effect { public string description, type, amount, until; }
 }
