@@ -274,7 +274,12 @@ public class EnemySpawner : MonoBehaviour
         enemiesSpawned = 0;
         killCount = 0;
         UpdateHUD();
-        
+
+        if (waveIndex % 3 == 0)
+        {
+            EventCenter.Broadcast(EventDefine.RelicDrop);
+        }
+
         //修改人物属性 包括 ui 
         FindFirstObjectByType<PlayerSpellController>().SetCharacter(ClassManager.Instance.GetClassStats("mage", waveIndex));
         GameManager.Instance.player.GetComponent<PlayerController>().NextLevel();
@@ -325,6 +330,7 @@ public class EnemySpawner : MonoBehaviour
         levelFinished = (waveIndex >= maxWaves);
         UpdateHUD();
 
+
         if (levelFinished && waveButtonLabel)
             waveButtonLabel.text = "Next Level";
 
@@ -332,17 +338,22 @@ public class EnemySpawner : MonoBehaviour
         if (rewardScreenPanel)
         {
             rewardScreenPanel.SetActive(true);
+
             EventCenter.Broadcast(EventDefine.ShowSpellPart);
 
 
             // EventCenter.Broadcast(EventDefine.ShowSpellPart);
             bool isSpell = Random.Range(0, 2) == 0; // 50%概率选法术50%概率选修正
 
-
-            if (waveIndex % 3 == 0)
+            if (isSpell)
             {
-                EventCenter.Broadcast(EventDefine.RelicDrop);
+                EventCenter.Broadcast(EventDefine.ShowSpellPart);
             }
+            else
+            {
+                EventCenter.Broadcast(EventDefine.ShowModifierPart);
+            }
+
 
 
         }
