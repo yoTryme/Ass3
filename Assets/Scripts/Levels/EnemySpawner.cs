@@ -332,9 +332,9 @@ public class EnemySpawner : MonoBehaviour
         if (rewardScreenPanel)
         {
             rewardScreenPanel.SetActive(true);
-            
+
             // EventCenter.Broadcast(EventDefine.ShowSpellPart);
-            bool isSpell = Random.Range(0, 2) == 0; // 50%概率选法术50%概率选修正
+            bool isSpell = true; // 50%概率选法术50%概率选修正
             
             if (isSpell)
             {
