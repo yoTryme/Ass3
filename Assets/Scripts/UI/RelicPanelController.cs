@@ -33,13 +33,13 @@ public class RelicPanelController : MonoBehaviour
         gameObject.SetActive(false);
 
         // 监听法术面板打开/关闭
-        EventCenter.AddListener(EventDefine.ShowSpellPart, ShowChoices);
+        EventCenter.AddListener(EventDefine.RelicDrop, ShowChoices);
         EventCenter.AddListener(EventDefine.CloseSpellPart, HidePanel);
     }
 
     void OnDestroy()
     {
-        EventCenter.RemoveListener(EventDefine.ShowSpellPart, ShowChoices);
+        EventCenter.RemoveListener(EventDefine.RelicDrop, ShowChoices);
         EventCenter.RemoveListener(EventDefine.CloseSpellPart, HidePanel);
     }
 

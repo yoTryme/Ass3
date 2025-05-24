@@ -332,19 +332,19 @@ public class EnemySpawner : MonoBehaviour
         if (rewardScreenPanel)
         {
             rewardScreenPanel.SetActive(true);
-            
+            EventCenter.Broadcast(EventDefine.ShowSpellPart);
+
+
             // EventCenter.Broadcast(EventDefine.ShowSpellPart);
             bool isSpell = Random.Range(0, 2) == 0; // 50%概率选法术50%概率选修正
-            
-            if (isSpell)
+
+
+            if (waveIndex % 3 == 0)
             {
-                EventCenter.Broadcast(EventDefine.ShowSpellPart);
+                EventCenter.Broadcast(EventDefine.RelicDrop);
             }
-            else
-            {
-                EventCenter.Broadcast(EventDefine.ShowModifierPart);
-            }
-           
+
+
         }
 
        
